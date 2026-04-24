@@ -425,6 +425,7 @@
 //   );
 // }
 
+
 import { useState, useEffect, useMemo } from "react";
 import { SeverityBadge } from "../components/SeverityBadge";
 import { getAllReadings, calculateRiskScore } from "../../services/firebaseService";
@@ -435,6 +436,7 @@ import {
   YAxis,
   ResponsiveContainer,
   CartesianGrid,
+  Tooltip,
 } from "recharts";
 
 export function AlertLog() {
@@ -449,127 +451,163 @@ export function AlertLog() {
         const generatedAlerts = [];
         
         readings.forEach((reading, index) => {
-          const riskScore = calculateRiskScore(reading);
+          const timestamp = new Date(reading.timestamp);
+          const timeStr = timestamp.toLocaleTimeString();
+          const dateStr = timestamp.toLocaleDateString();
           
-          // Soil moisture alert
-          if (reading.soil_20cm > 80) {
+          // ========== SOIL MOISTURE ALERTS ==========
+          const soilValue = reading.soil_20cm || 0;
+          if (soilValue > 80) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `soil_critical_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Soil Moisture",
               severity: "critical",
-              description: `Saturation exceeded critical threshold (${reading.soil_20cm}% > 80%) — immediate risk`,
-              value: `${reading.soil_20cm}%`,
-              acknowledged: index % 3 === 0,
-              ackTime: index % 3 === 0 ? "Auto" : null
+              description: `Soil saturation exceeded CRITICAL threshold (${soilValue}% > 80%) — Immediate evacuation risk`,
+              value: `${soilValue}%`,
+              acknowledged: false,
+              ackTime: null
             });
-          } else if (reading.soil_20cm > 60) {
+          } else if (soilValue > 60) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `soil_warning_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Soil Moisture",
               severity: "warning",
-              description: `Gradual moisture rise detected (${reading.soil_20cm}%)`,
-              value: `${reading.soil_20cm}%`,
-              acknowledged: index % 2 === 0,
-              ackTime: index % 2 === 0 ? "Auto" : null
-            });
-          }
-          
-          // Tilt alert
-          const tiltX = Math.abs(reading.rotation_x);
-          if (tiltX > 8) {
-            generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
-              sensor: "Tilt / MPU6050",
-              severity: "critical",
-              description: `X-axis tilt approaching critical (${tiltX.toFixed(1)}° of 10° limit)`,
-              value: `${tiltX.toFixed(1)}°`,
-              acknowledged: index % 2 === 0,
-              ackTime: index % 2 === 0 ? "Auto" : null
-            });
-          } else if (tiltX > 5) {
-            generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
-              sensor: "Tilt / MPU6050",
-              severity: "warning",
-              description: `Tilt angle elevated (${tiltX.toFixed(1)}°)`,
-              value: `${tiltX.toFixed(1)}°`,
+              description: `Soil moisture elevated to WARNING level (${soilValue}% > 60%) — Monitor closely`,
+              value: `${soilValue}%`,
               acknowledged: true,
               ackTime: "Auto"
             });
           }
           
-          // Vibration alert
-          const vibration = Math.abs(reading.acceleration_x);
-          if (vibration > 0.4) {
+          // ========== TILT ALERTS ==========
+          const tiltValue = Math.abs(reading.rotation_x || 0);
+          if (tiltValue > 8) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `tilt_critical_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
+              sensor: "Tilt / MPU6050",
+              severity: "critical",
+              description: `X-axis tilt at CRITICAL level (${tiltValue.toFixed(1)}° > 8°) — Structural failure risk`,
+              value: `${tiltValue.toFixed(1)}°`,
+              acknowledged: false,
+              ackTime: null
+            });
+          } else if (tiltValue > 5) {
+            generatedAlerts.push({
+              id: `tilt_warning_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
+              sensor: "Tilt / MPU6050",
+              severity: "warning",
+              description: `X-axis tilt elevated to WARNING level (${tiltValue.toFixed(1)}° > 5°) — Schedule inspection`,
+              value: `${tiltValue.toFixed(1)}°`,
+              acknowledged: true,
+              ackTime: "Auto"
+            });
+          }
+          
+          // ========== VIBRATION ALERTS ==========
+          const vibrationValue = Math.abs(reading.acceleration_x || 0);
+          if (vibrationValue > 0.4) {
+            generatedAlerts.push({
+              id: `vibration_critical_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Vibration",
               severity: "critical",
-              description: `Seismic-level vibration — construction halt enforced (${vibration.toFixed(2)}g)`,
-              value: `${vibration.toFixed(2)}g`,
-              acknowledged: true,
-              ackTime: "09:12"
+              description: `Vibration at CRITICAL level (${vibrationValue.toFixed(2)}g > 0.4g) — Immediate halt construction`,
+              value: `${vibrationValue.toFixed(2)}g`,
+              acknowledged: false,
+              ackTime: null
             });
-          } else if (vibration > 0.2) {
+          } else if (vibrationValue > 0.2) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `vibration_warning_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Vibration",
               severity: "warning",
-              description: `Vibration spike — possible heavy equipment impact (${vibration.toFixed(2)}g)`,
-              value: `${vibration.toFixed(2)}g`,
+              description: `Vibration spike detected (${vibrationValue.toFixed(2)}g > 0.2g) — Possible heavy equipment impact`,
+              value: `${vibrationValue.toFixed(2)}g`,
               acknowledged: true,
               ackTime: "14:18"
             });
           }
           
-          // Crack alert
-          const crack = reading.crack_width || 0;
-          if (crack > 5) {
+          // ========== CRACK ALERTS ==========
+          const crackValue = reading.crack_width || 0;
+          if (crackValue > 5) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `crack_critical_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Crack (ToF)",
               severity: "critical",
-              description: `Crack width critical threshold exceeded (${crack.toFixed(1)}mm > 5mm)`,
-              value: `${crack.toFixed(1)} mm`,
+              description: `Crack width at CRITICAL level (${crackValue.toFixed(1)}mm > 5mm) — Immediate evacuation required`,
+              value: `${crackValue.toFixed(1)} mm`,
               acknowledged: false,
               ackTime: null
             });
-          } else if (crack > 3.5) {
+          } else if (crackValue > 3.5) {
             generatedAlerts.push({
-              time: new Date(reading.timestamp).toLocaleTimeString(),
+              id: `crack_warning_${index}`,
+              timestamp: reading.timestamp,
+              date: dateStr,
+              time: timeStr,
               sensor: "Crack (ToF)",
               severity: "warning",
-              description: `Crack widening detected (${crack.toFixed(1)}mm)`,
-              value: `${crack.toFixed(1)} mm`,
+              description: `Crack widening detected (${crackValue.toFixed(1)}mm > 3.5mm) — Schedule inspection`,
+              value: `${crackValue.toFixed(1)} mm`,
               acknowledged: true,
               ackTime: "Auto"
             });
           }
         });
         
+        // Sort by timestamp (newest first)
+        generatedAlerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         setAlertData(generatedAlerts.slice(-50)); // Last 50 alerts
         
-        // Generate frequency data for last 7 days
-        const last7Days = {};
-        const today = new Date();
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(today.getDate() - i);
-          const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          last7Days[dateStr] = { date: dateStr, critical: 0, warning: 0, info: 0 };
-        }
+        // ========== CORRECT FREQUENCY DATA - Group by actual date ==========
+        const frequencyByDate = {};
         
         generatedAlerts.forEach(alert => {
-          // Find matching date in last7Days (simplified)
-          const dateKey = Object.keys(last7Days)[Math.floor(Math.random() * 7)];
-          if (last7Days[dateKey]) {
-            if (alert.severity === "critical") last7Days[dateKey].critical++;
-            else if (alert.severity === "warning") last7Days[dateKey].warning++;
-            else last7Days[dateKey].info++;
+          const date = alert.date;
+          if (!frequencyByDate[date]) {
+            frequencyByDate[date] = { date: date, critical: 0, warning: 0, info: 0 };
+          }
+          if (alert.severity === "critical") {
+            frequencyByDate[date].critical++;
+          } else if (alert.severity === "warning") {
+            frequencyByDate[date].warning++;
+          } else {
+            frequencyByDate[date].info++;
           }
         });
         
-        setAlertFrequencyData(Object.values(last7Days));
+        // Get last 7 days of data
+        const last7DaysData = Object.values(frequencyByDate).slice(-7);
+        setAlertFrequencyData(last7DaysData);
+        
+        // Debug: Log what alerts were generated
+        console.log(`📊 Generated ${generatedAlerts.length} alerts total`);
+        console.log(`   Soil: ${generatedAlerts.filter(a => a.sensor === "Soil Moisture").length}`);
+        console.log(`   Tilt: ${generatedAlerts.filter(a => a.sensor === "Tilt / MPU6050").length}`);
+        console.log(`   Vibration: ${generatedAlerts.filter(a => a.sensor === "Vibration").length}`);
+        console.log(`   Crack: ${generatedAlerts.filter(a => a.sensor === "Crack (ToF)").length}`);
+        
       }
     });
   }, []);
@@ -578,7 +616,6 @@ export function AlertLog() {
     { id: "all", label: "All" },
     { id: "critical", label: "Critical" },
     { id: "warning", label: "Warning" },
-    { id: "info", label: "Info" },
   ];
 
   const filteredAlerts = useMemo(() => {
@@ -586,8 +623,50 @@ export function AlertLog() {
     return alertData.filter((a) => a.severity === activeFilter);
   }, [activeFilter, alertData]);
 
+  // Count alerts by sensor for summary
+  const alertSummary = useMemo(() => {
+    const summary = {
+      soil: alertData.filter(a => a.sensor === "Soil Moisture").length,
+      tilt: alertData.filter(a => a.sensor === "Tilt / MPU6050").length,
+      vibration: alertData.filter(a => a.sensor === "Vibration").length,
+      crack: alertData.filter(a => a.sensor === "Crack (ToF)").length,
+      critical: alertData.filter(a => a.severity === "critical").length,
+      warning: alertData.filter(a => a.severity === "warning").length,
+    };
+    return summary;
+  }, [alertData]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      
+      {/* Alert Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        <div style={{ padding: "12px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)", textAlign: "center" }}>
+          <div style={{ fontSize: "9px", color: "var(--muted)", letterSpacing: "0.1em" }}>SOIL ALERTS</div>
+          <div style={{ fontSize: "24px", fontFamily: "Share Tech Mono, monospace", color: alertSummary.soil > 0 ? "var(--amber)" : "var(--green)" }}>
+            {alertSummary.soil}
+          </div>
+        </div>
+        <div style={{ padding: "12px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)", textAlign: "center" }}>
+          <div style={{ fontSize: "9px", color: "var(--muted)", letterSpacing: "0.1em" }}>TILT ALERTS</div>
+          <div style={{ fontSize: "24px", fontFamily: "Share Tech Mono, monospace", color: alertSummary.tilt > 0 ? "var(--amber)" : "var(--green)" }}>
+            {alertSummary.tilt}
+          </div>
+        </div>
+        <div style={{ padding: "12px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)", textAlign: "center" }}>
+          <div style={{ fontSize: "9px", color: "var(--muted)", letterSpacing: "0.1em" }}>VIBRATION ALERTS</div>
+          <div style={{ fontSize: "24px", fontFamily: "Share Tech Mono, monospace", color: alertSummary.vibration > 0 ? "var(--amber)" : "var(--green)" }}>
+            {alertSummary.vibration}
+          </div>
+        </div>
+        <div style={{ padding: "12px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)", textAlign: "center" }}>
+          <div style={{ fontSize: "9px", color: "var(--muted)", letterSpacing: "0.1em" }}>CRACK ALERTS</div>
+          <div style={{ fontSize: "24px", fontFamily: "Share Tech Mono, monospace", color: alertSummary.crack > 0 ? "var(--amber)" : "var(--green)" }}>
+            {alertSummary.crack}
+          </div>
+        </div>
+      </div>
+
       {/* Filter Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -609,31 +688,54 @@ export function AlertLog() {
                 transition: "all 0.2s ease"
               }}
             >
-              {filter.label.toUpperCase()}
+              {filter.label.toUpperCase()} ({activeFilter === "all" ? alertData.length : alertData.filter(a => a.severity === filter.id).length})
             </button>
           ))}
         </div>
-        <button style={{ padding: "4px 12px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, fontFamily: "Barlow, sans-serif", letterSpacing: "0.08em", backgroundColor: "var(--bg3)", border: "1px solid var(--border)", color: "var(--text)", cursor: "pointer" }}>EXPORT CSV</button>
+        <button 
+          onClick={() => {
+            const headers = ["Date", "Time", "Sensor", "Severity", "Description", "Value", "Acknowledged"];
+            const rows = filteredAlerts.map(a => [
+              a.date, a.time, a.sensor, a.severity, a.description, a.value, a.acknowledged ? "Yes" : "No"
+            ]);
+            const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `alerts_${new Date().toISOString().slice(0, 19)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          style={{ padding: "4px 12px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, fontFamily: "Barlow, sans-serif", letterSpacing: "0.08em", backgroundColor: "var(--bg3)", border: "1px solid var(--border)", color: "var(--text)", cursor: "pointer" }}
+        >
+          EXPORT CSV
+        </button>
       </div>
 
       <div style={{ height: "20px" }}></div>
 
       {/* Alert Frequency Chart */}
-      <div style={{ padding: "14px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)" }}>
-        <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "12px", fontFamily: "Barlow, sans-serif" }}>
-          ALERT FREQUENCY — LAST 7 DAYS
+      {alertFrequencyData.length > 0 && (
+        <div style={{ padding: "14px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "12px", fontFamily: "Barlow, sans-serif" }}>
+            ALERT FREQUENCY — LAST 7 DAYS
+          </div>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={alertFrequencyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 51, 71, 0.5)" />
+              <XAxis dataKey="date" stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
+              <YAxis stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: "#1A2030", border: "1px solid var(--border)", fontSize: 11 }}
+              />
+              <Bar dataKey="critical" stackId="a" fill="var(--red)" radius={[4, 4, 0, 0]} name="Critical" />
+              <Bar dataKey="warning" stackId="a" fill="var(--amber)" radius={[4, 4, 0, 0]} name="Warning" />
+              <Bar dataKey="info" stackId="a" fill="var(--blue)" radius={[4, 4, 0, 0]} name="Info" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <ResponsiveContainer width="100%" height={100}>
-          <BarChart data={alertFrequencyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 51, 71, 0.5)" />
-            <XAxis dataKey="date" stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-            <YAxis stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-            <Bar dataKey="critical" stackId="a" fill="var(--red)" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="warning" stackId="a" fill="var(--amber)" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="info" stackId="a" fill="var(--blue)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      )}
 
       <div style={{ height: "20px" }}></div>
 
@@ -643,34 +745,42 @@ export function AlertLog() {
           INCIDENT LOG ({filteredAlerts.length} alerts)
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: "100%", fontSize: "12px", fontFamily: "Barlow, sans-serif", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>TIME</th>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>SENSOR</th>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>SEVERITY</th>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>EVENT DESCRIPTION</th>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>VALUE</th>
-                <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>ACKNOWLEDGED</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAlerts.map((alert, index) => (
-                <tr key={index} style={{ borderBottom: "1px solid rgba(42, 51, 71, 0.5)" }}>
-                  <td style={{ padding: "12px", fontFamily: "Share Tech Mono, monospace", fontSize: "11px", color: "var(--text)" }}>{alert.time}</td>
-                  <td style={{ padding: "12px", color: "var(--text)" }}>{alert.sensor}</td>
-                  <td style={{ padding: "12px" }}><SeverityBadge severity={alert.severity} /></td>
-                  <td style={{ padding: "12px", color: "var(--text)" }}>{alert.description}</td>
-                  <td style={{ padding: "12px", fontFamily: "Share Tech Mono, monospace", fontSize: "11px", color: "var(--text)" }}>{alert.value}</td>
-                  <td style={{ padding: "12px", fontSize: "11px", fontFamily: "Share Tech Mono, monospace", color: alert.acknowledged ? "var(--green)" : "var(--amber)" }}>
-                    {alert.acknowledged ? `✓ ${alert.ackTime || "Auto"}` : "Pending"}
-                  </td>
+        {filteredAlerts.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "var(--green)", fontSize: "12px" }}>
+            ✅ No alerts found for the selected filter.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: "100%", fontSize: "12px", fontFamily: "Barlow, sans-serif", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>DATE</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>TIME</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>SENSOR</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>SEVERITY</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>EVENT DESCRIPTION</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>VALUE</th>
+                  <th style={{ fontSize: "9px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.15em", padding: "8px 12px", textAlign: "left" }}>ACKNOWLEDGED</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredAlerts.map((alert, index) => (
+                  <tr key={index} style={{ borderBottom: "1px solid rgba(42, 51, 71, 0.5)" }}>
+                    <td style={{ padding: "12px", fontFamily: "Share Tech Mono, monospace", fontSize: "11px", color: "var(--text)" }}>{alert.date}</td>
+                    <td style={{ padding: "12px", fontFamily: "Share Tech Mono, monospace", fontSize: "11px", color: "var(--text)" }}>{alert.time}</td>
+                    <td style={{ padding: "12px", color: "var(--text)" }}>{alert.sensor}</td>
+                    <td style={{ padding: "12px" }}><SeverityBadge severity={alert.severity} /></td>
+                    <td style={{ padding: "12px", color: "var(--text)" }}>{alert.description}</td>
+                    <td style={{ padding: "12px", fontFamily: "Share Tech Mono, monospace", fontSize: "11px", color: "var(--text)" }}>{alert.value}</td>
+                    <td style={{ padding: "12px", fontSize: "11px", fontFamily: "Share Tech Mono, monospace", color: alert.acknowledged ? "var(--green)" : "var(--amber)" }}>
+                      {alert.acknowledged ? `✓ ${alert.ackTime || "Auto"}` : "⚠ Pending"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
