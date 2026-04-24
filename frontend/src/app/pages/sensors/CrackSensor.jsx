@@ -1,241 +1,3 @@
-// import { useState, useEffect } from "react";
-// import { StatCard } from "../../components/StatCard";
-// import { getAllReadings, getLatestReading } from "../../../services/firebaseService";
-// import {
-//   LineChart,
-//   Line,
-//   XAxis,
-//   YAxis,
-//   ResponsiveContainer,
-//   CartesianGrid,
-//   PieChart,
-//   Pie,
-//   Cell,
-//   ReferenceLine,
-// } from "recharts";
-
-// const riskColors = ["#22c55e", "#f59e0b", "#ef4444"];
-
-// export function CrackSensor() {
-//   const [dateRange, setDateRange] = useState("7d");
-//   const [crackData, setCrackData] = useState([]);
-//   const [crackHistory, setCrackHistory] = useState([]);
-//   const [latestCrack, setLatestCrack] = useState(3.1);
-//   const [crackRate, setCrackRate] = useState(0);
-//   const [riskDistribution, setRiskDistribution] = useState([
-//     { name: "Safe", value: 0 },
-//     { name: "Warning", value: 0 },
-//     { name: "Critical", value: 0 }
-//   ]);
-//   const isSensorHealthy = true;
-
-//   useEffect(() => {
-//     // Get latest crack reading
-//     getLatestReading((latest) => {
-//       if (latest) {
-//         setLatestCrack(latest.crack_width || 0);
-//       }
-//     });
-
-//     // Get all readings for history
-//     getAllReadings((readings) => {
-//       if (readings && readings.length > 0) {
-//         // Prepare crack trend data (last 30 readings)
-//         const last30 = readings.slice(-30);
-//         const trendData = last30.map((reading, index) => ({
-//           time: index,
-//           value: reading.crack_width || 0
-//         }));
-//         setCrackData(trendData);
-
-//         // Prepare historical data based on date range
-//         let historyData = [];
-//         const now = new Date();
-        
-//         if (dateRange === "7d") {
-//           historyData = readings.slice(-7);
-//         } else if (dateRange === "14d") {
-//           historyData = readings.slice(-14);
-//         } else {
-//           historyData = readings.slice(-30);
-//         }
-        
-//         const historyChartData = historyData.map(reading => ({
-//           date: new Date(reading.timestamp).toLocaleDateString(),
-//           value: reading.crack_width || 0
-//         }));
-//         setCrackHistory(historyChartData);
-
-//         // Calculate risk distribution
-//         let safe = 0, warning = 0, critical = 0;
-//         readings.forEach(reading => {
-//           const crack = reading.crack_width || 0;
-//           if (crack < 3.5) safe++;
-//           else if (crack < 5) warning++;
-//           else critical++;
-//         });
-        
-//         const total = safe + warning + critical;
-//         setRiskDistribution([
-//           { name: "Safe", value: total > 0 ? Math.round((safe / total) * 100) : 0 },
-//           { name: "Warning", value: total > 0 ? Math.round((warning / total) * 100) : 0 },
-//           { name: "Critical", value: total > 0 ? Math.round((critical / total) * 100) : 0 }
-//         ]);
-
-//         // Calculate crack rate (last reading vs previous)
-//         if (readings.length >= 2) {
-//           const last = readings[readings.length - 1];
-//           const prev = readings[readings.length - 2];
-//           const timeDiff = new Date(last.timestamp) - new Date(prev.timestamp);
-//           const hoursDiff = timeDiff / (1000 * 60 * 60);
-//           const rate = (last.crack_width - prev.crack_width) / hoursDiff;
-//           setCrackRate(Math.abs(rate).toFixed(2));
-//         }
-//       }
-//     });
-//   }, [dateRange]);
-
-//   const getStatus = () => {
-//     if (latestCrack > 5) return "CRITICAL";
-//     if (latestCrack > 3.5) return "WARNING";
-//     return "SAFE";
-//   };
-
-//   const getStatusColor = () => {
-//     if (latestCrack > 5) return "var(--red)";
-//     if (latestCrack > 3.5) return "var(--amber)";
-//     return "var(--green)";
-//   };
-
-//   return (
-//     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-//       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-//         <StatCard label="GAP WIDTH" value={`${latestCrack.toFixed(1)} mm`} sub="Current measurement" color={getStatusColor()} />
-//         <StatCard label="WIDENING RATE" value={`${crackRate} mm/hr`} sub="Rate of change" color={crackRate > 0.1 ? "var(--amber)" : "var(--green)"} />
-//         <StatCard label="STATUS" value={getStatus()} sub="Safety status" color={getStatusColor()} />
-//       </div>
-
-//       <div style={{ height: "20px" }}></div>
-
-//       <div style={{ padding: "14px", borderRadius: "8px", backgroundColor: "#1A2030" }}>
-//         <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "12px", fontFamily: "Barlow, sans-serif" }}>
-//           SENSOR TREND — LAST 30 READINGS
-//         </div>
-//         <ResponsiveContainer width="100%" height={150}>
-//           <LineChart data={crackData}>
-//             <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 51, 71, 0.5)" />
-//             <XAxis dataKey="time" stroke="var(--muted)"
-//               style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-//             <YAxis domain={[0, 8]} stroke="var(--muted)"
-//               style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-//             <Line type="monotone" dataKey="value" stroke="#22c55e" strokeWidth={2} dot={false} />
-//             <ReferenceLine y={5} stroke="red" strokeDasharray="4 4"
-//               label={{ value: "CRITICAL (5mm)", position: "right", fill: "red", fontSize: 10 }} />
-//             <ReferenceLine y={3.5} stroke="#f59e0b" strokeDasharray="4 4"
-//               label={{ value: "WARNING (3.5mm)", position: "right", fill: "#f59e0b", fontSize: 10 }} />
-//           </LineChart>
-//         </ResponsiveContainer>
-//       </div>
-
-//       <div style={{ height: "20px" }}></div>
-
-//       <div style={{ display: 'flex', gap: '8px' }}>
-//         {[{ id: "7d", label: "Last 7 Days" }, { id: "14d", label: "Last 14 Days" }, { id: "30d", label: "Last 30 Days" }].map((range) => (
-//           <button key={range.id} onClick={() => setDateRange(range.id)} style={{
-//             padding: "4px 12px", borderRadius: "4px",
-//             fontSize: "11px", fontWeight: 600, fontFamily: "Barlow, sans-serif", letterSpacing: "0.05em",
-//             backgroundColor: dateRange === range.id ? "rgba(34, 197, 94, 0.15)" : "var(--bg3)",
-//             border: `1px solid ${dateRange === range.id ? "var(--green)" : "var(--border)"}`,
-//             color: dateRange === range.id ? "var(--green)" : "var(--text)",
-//             cursor: "pointer"
-//           }}>
-//             {range.label.toUpperCase()}
-//           </button>
-//         ))}
-//       </div>
-
-//       <div style={{ height: "12px" }}></div>
-
-//       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
-//         <div style={{ gridColumn: 'span 3', padding: "14px", borderRadius: "8px", backgroundColor: "#1A2030", border: "1px solid var(--border)" }}>
-//           <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "12px", fontFamily: "Barlow, sans-serif" }}>
-//             CRACK DISPLACEMENT — HISTORICAL TREND ({dateRange.toUpperCase()})
-//           </div>
-//           <ResponsiveContainer width="100%" height={150}>
-//             <LineChart data={crackHistory}>
-//               <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 51, 71, 0.5)" />
-//               <XAxis dataKey="date" stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-//               <YAxis domain={[0, 8]} stroke="var(--muted)" style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }} />
-//               <ReferenceLine y={5} stroke="#ef4444" strokeDasharray="4 4" />
-//               <ReferenceLine y={3.5} stroke="#f59e0b" strokeDasharray="4 4" />
-//               <Line type="monotone" dataKey="value" stroke="#22c55e" strokeWidth={2} dot={false} />
-//             </LineChart>
-//           </ResponsiveContainer>
-//         </div>
-
-//         <div style={{ padding: "14px", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#1A2030", border: "1px solid var(--border)" }}>
-//           <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "10px", fontFamily: "Barlow, sans-serif", textAlign: "center" }}>
-//             RISK LEVEL DISTRIBUTION
-//           </div>
-//           <ResponsiveContainer width="100%" height={120}>
-//             <PieChart>
-//               <Pie data={riskDistribution} dataKey="value" innerRadius={25} outerRadius={45} paddingAngle={3}>
-//                 {riskDistribution.map((_, index) => (
-//                   <Cell key={`cell-${index}`} fill={riskColors[index]} />
-//                 ))}
-//               </Pie>
-//             </PieChart>
-//           </ResponsiveContainer>
-//           <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "8px" }}>
-//             {[["#22c55e", "SAFE"], ["#f59e0b", "WARNING"], ["#ef4444", "CRITICAL"]].map(([color, label]) => (
-//               <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-//                 <div style={{ width: "10px", height: "10px", backgroundColor: color, borderRadius: "2px" }} />
-//                 <span style={{ fontSize: "6px", color: "var(--muted)", fontFamily: "Share Tech Mono, monospace" }}>{label}</span>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         <div style={{ padding: "14px", borderRadius: "8px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", backgroundColor: "#1A2030", border: "1px solid var(--border)" }}>
-//           <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em", marginBottom: "20px", fontFamily: "Barlow, sans-serif" }}>
-//             SENSOR HEALTH
-//           </div>
-//           <div style={{ fontSize: "18px", fontWeight: 600, color: isSensorHealthy ? "var(--green)" : "var(--red)", marginBottom: "6px" }}>
-//             {isSensorHealthy ? "FUNCTIONING" : "FAULT DETECTED"}
-//           </div>
-//           <div style={{ fontSize: "12px", color: "var(--muted)", lineHeight: 1.4 }}>
-//             {isSensorHealthy ? "Signal stable. No data loss detected." : "Check wiring, power supply, or sensor module."}
-//           </div>
-//         </div>
-//       </div>
-
-//       <div style={{ height: "8px" }}></div>
-
-//       <div style={{ padding: "16px", borderRadius: "8px", backgroundColor: latestCrack > 5 ? "rgba(239, 68, 68, 0.08)" : latestCrack > 3.5 ? "rgba(245, 158, 11, 0.08)" : "rgba(59, 130, 246, 0.08)", border: `1px solid ${latestCrack > 5 ? "var(--red)" : latestCrack > 3.5 ? "var(--amber)" : "var(--blue)"}` }}>
-//         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-//           <div style={{ fontSize: "24px", color: latestCrack > 5 ? "var(--red)" : latestCrack > 3.5 ? "var(--amber)" : "var(--blue)" }}>
-//             {latestCrack > 5 ? "⬥" : latestCrack > 3.5 ? "⬦" : "◆"}
-//           </div>
-//           <div style={{ flex: 1 }}>
-//             <div style={{ fontSize: "13px", fontWeight: 500, color: latestCrack > 5 ? "var(--red)" : latestCrack > 3.5 ? "var(--amber)" : "var(--blue)", marginBottom: "8px" }}>
-//               {latestCrack > 5 ? "Immediate Action Required" : latestCrack > 3.5 ? "Caution — Monitor Closely" : "No Action Required"}
-//             </div>
-//             <div style={{ fontSize: "12px", color: "var(--text)", lineHeight: 1.5 }}>
-//               {latestCrack > 5 
-//                 ? `Crack width at ${latestCrack.toFixed(1)}mm exceeds critical threshold (5mm). Immediate evacuation recommended for affected zone.` 
-//                 : latestCrack > 3.5 
-//                 ? `Crack width at ${latestCrack.toFixed(1)}mm is approaching critical threshold. Increase monitoring frequency.` 
-//                 : `Crack displacement is stable at ${latestCrack.toFixed(1)}mm. Continue routine monitoring. Alert will trigger if gap exceeds 5mm.`}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 /**
  * CrackSensor.jsx — Enhanced Visual Analytics Component
  *
@@ -269,6 +31,7 @@ import {
   Info, ChevronDown, ChevronUp, HelpCircle, Activity,
   CheckCircle, XCircle, Clock, Zap, Droplets, Thermometer,
   Wind, BarChart2, Eye, EyeOff, RefreshCw, Bell, BellOff,
+  Brain,  
 } from "lucide-react";
 
 // ─── Design tokens (aligned with assignment color theory) ────────────────────
@@ -307,7 +70,7 @@ const fmt = (v, d = 1) => (typeof v === "number" ? v.toFixed(d) : "—");
 const severityScore = (r) => {
   let s = Math.min((r.crack_width || 0) / TH_CRITICAL, 1) * 60;
   s += Math.min((r.soil_20cm || 0) / 100, 1) * 20;
-  s += Math.min(Math.abs(r.vibration || 0) / 100, 1) * 20;
+  s += Math.min(Math.abs(r.acceleration_x || 0) / 0.5, 1) * 20;
   return Math.round(s);
 };
 
@@ -429,7 +192,7 @@ const EventTimeline = ({ readings, linkedPoint }) => {
       events.push({ time: cur.timestamp, type:"threshold", label:"⚠ Crossed warning threshold", color: TOKEN.warning, value: curCrack });
     if (prevCrack < TH_CRITICAL && curCrack >= TH_CRITICAL)
       events.push({ time: cur.timestamp, type:"critical",  label:"🔴 Critical threshold breached", color: TOKEN.critical, value: curCrack });
-    if ((prev.vibration || 0) === 0 && (cur.vibration || 0) > 40)
+    if ((Math.abs(prev.acceleration_x || 0)) === 0 && (Math.abs(cur.acceleration_x || 0)) > 0.3)
       events.push({ time: cur.timestamp, type:"vibration", label:"📳 Vibration spike", color: TOKEN.purple, value: cur.vibration });
   }
 
@@ -564,7 +327,7 @@ const MultiMetricChart = ({ readings, linkedPoint, onBrush }) => {
     i,
     crack:    +(r.crack_width || 0).toFixed(2),
     rotationX: +((Math.abs(r.rotation_x || 0)) / 100 * 8).toFixed(2),
-    vibration: +((Math.abs(r.vibration || 0)) / 100 * 8).toFixed(2),
+    vibration: +((Math.abs(r.acceleration_x || 0)) / 0.5 * 8).toFixed(2),
     soil20:   +((r.soil_20cm  || 0) / 100 * 8).toFixed(2),
     ts: new Date(r.timestamp).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
   }));
@@ -617,7 +380,7 @@ const SensorRadar = ({ readings }) => {
   const data = [
     { metric:"Crack Risk",   value: Math.min(avg(r => (r.crack_width||0)/TH_CRITICAL)*100, 100) },
     { metric:"Soil 20cm",    value: Math.min(avg(r => (r.soil_20cm||0)),100) },
-    { metric:"Vibration",    value: Math.min(avg(r => Math.abs(r.vibration||0)),100) },
+    { metric:"Vibration", value: Math.min(avg(r => Math.abs(r.acceleration_x||0)) * 200, 100) },
     { metric:"Rotation X",   value: Math.min(Math.abs(avg(r => r.rotation_x||0))/2,100) },
     { metric:"Rotation Y",   value: Math.min(Math.abs(avg(r => r.rotation_y||0))/2,100) },
     { metric:"Rotation Z",   value: Math.min(Math.abs(avg(r => r.rotation_z||0))/2,100) },
@@ -757,7 +520,9 @@ export function CrackSensor() {
     headline: true, story: true, trend: true, multiMetric: false,
     patterns: false, correlations: false, scatter: false,
     radar: false, heatmap: false, alerts: false, actions: true,
+    mlIntegration: true, 
   });
+  const [comparisonMode, setComparisonMode] = useState(false);  
 
   const isSensorHealthy = true;
   const toggleSection   = (k) => setExpandedSections(p => ({ ...p, [k]: !p[k] }));
@@ -830,7 +595,7 @@ export function CrackSensor() {
     return alerts;
   }, []);
 
-  // ── Data fetching ─────────────────────────────────────────────────────────
+  //── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
     getLatestReading((latest) => {
       if (latest) setLatestCrack(latest.crack_width || 0);
@@ -848,13 +613,19 @@ export function CrackSensor() {
       setCrackData(last30.map((r,i) => ({ time:i, value:r.crack_width||0, timestamp:r.timestamp })));
 
       const daysMap = { "7d":7, "14d":14, "30d":30 };
-      const histData = filtered.slice(-(daysMap[dateRange]||30)).map(r => ({
-        date:     new Date(r.timestamp).toLocaleDateString(),
-        value:    r.crack_width || 0,
-        soil20:   r.soil_20cm   || 0,
+      const limit = daysMap[dateRange] || 30;
+
+      // Get last N readings based on dateRange
+      const histData = filtered.slice(-limit).map((r, idx) => ({
+        id: idx,
+        date: new Date(r.timestamp).toLocaleDateString(),
+        value: r.crack_width || 0,
+        soil20: r.soil_20cm || 0,
         rotationX: r.rotation_x || 0,
+        fullDate: new Date(r.timestamp)
       }));
       setCrackHistory(histData);
+      console.log(`📊 Date range: ${dateRange}, Showing ${histData.length} readings`);
 
       let s=0,w=0,c=0;
       filtered.forEach(r => {
@@ -1043,23 +814,61 @@ export function CrackSensor() {
           </select>
 
           <div style={{ display:"flex", gap:4 }}>
-            {[["7d","7 Days"],["14d","14 Days"],["30d","30 Days"]].map(([id,label]) => (
-              <button key={id} onClick={()=>setDateRange(id)}
-                aria-pressed={dateRange===id}
-                style={{
-                  padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:600,
-                  backgroundColor: dateRange===id ? `${TOKEN.safe}25` : TOKEN.bg2,
-                  border:`1px solid ${dateRange===id ? TOKEN.safe : TOKEN.border}`,
-                  color: dateRange===id ? TOKEN.safe : TOKEN.muted,
-                  cursor:"pointer",
-                }}>
-                {label}
-              </button>
-            ))}
+            {[["7d","7 Days"],["14d","14 Days"],["30d","30 Days"]].map(([id,label]) => {
+              const daysMap = { "7d":7, "14d":14, "30d":30 };
+              const readingCount = crackHistory.length;
+              const isActive = dateRange === id;
+              
+              return (
+                <button key={id} onClick={() => setDateRange(id)}
+                  aria-pressed={isActive}
+                  style={{
+                    padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:600,
+                    backgroundColor: isActive ? `${TOKEN.safe}25` : TOKEN.bg2,
+                    border:`1px solid ${isActive ? TOKEN.safe : TOKEN.border}`,
+                    color: isActive ? TOKEN.safe : TOKEN.muted,
+                    cursor:"pointer",
+                    position:"relative",
+                  }}>
+                  {label}
+                  {isActive && readingCount > 0 && (
+                    <span style={{
+                      position:"absolute",
+                      top:"-6px",
+                      right:"-6px",
+                      background: TOKEN.safe,
+                      color: "#000",
+                      fontSize:"8px",
+                      borderRadius:"10px",
+                      padding:"0px 4px",
+                      fontWeight:"bold"
+                    }}>
+                      {readingCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div style={{ display:"flex", gap:6 }}>
+
+          <button 
+            onClick={() => setComparisonMode(!comparisonMode)}
+            style={{
+              padding:"3px 10px",
+              borderRadius:4,
+              fontSize:10,
+              backgroundColor: comparisonMode ? `${TOKEN.blue}22` : TOKEN.bg2,
+              border: `1px solid ${comparisonMode ? TOKEN.blue : TOKEN.border}`,
+              color: comparisonMode ? TOKEN.blue : TOKEN.muted,
+              cursor:"pointer"
+            }}
+          >
+            {comparisonMode ? "📊 Normal View" : "📈 Compare Mode"}
+          </button>
+
           <button onClick={()=>setShowPredictions(p=>!p)}
             aria-pressed={showPredictions}
             style={{
@@ -1259,7 +1068,7 @@ export function CrackSensor() {
         {expandedSections.story && (
           <div style={{ padding:16 }}>
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={crackHistory} onClick={(d) => d?.activePayload && setLinkedPoint({ time:d.activePayload[0].payload.date, value:d.activePayload[0].payload.value })}>
+              <AreaChart key={`chart-${dateRange}-${crackHistory.length}`} data={crackHistory} onClick={(d) => d?.activePayload && setLinkedPoint({ time:d.activePayload[0].payload.date, value:d.activePayload[0].payload.value })}>
                 <defs>
                   <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor={statusColor} stopOpacity={0.3} />
@@ -1455,13 +1264,51 @@ export function CrackSensor() {
         )}
       </div>
 
-      {/* UX FOOTER NOTE */}
-      <div style={{ fontSize:9, color:TOKEN.muted, textAlign:"center", padding:"6px 8px", lineHeight:1.6 }}>
-        💡 <strong>UX features:</strong> Brushing &amp; Linking · Progressive Disclosure · Annotated Storytelling · Pearson Correlations ·
-        Heatmap Calendar · Hourly Pattern · Radar Snapshot · Scatter Analysis · Action Checklists · ARIA Accessibility
-        <br />Data flows in real-time from Firebase Realtime Database
+      {/* ML MODEL INTEGRATION - LINK TO ML PREDICTIONS PAGE */}
+      <div style={{ 
+        backgroundColor: TOKEN.card, 
+        border: `1px solid ${TOKEN.border}`, 
+        borderRadius: 8, 
+        padding: "12px 16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Brain size={18} style={{ color: TOKEN.purple }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: TOKEN.text }}>
+            ML-Powered Risk Predictions
+          </span>
+          <span style={{
+            fontSize: 9,
+            padding: "2px 6px",
+            borderRadius: 10,
+            backgroundColor: `${TOKEN.purple}22`,
+            color: TOKEN.purple
+          }}>
+            Logistic Regression
+          </span>
+        </div>
+        <button
+          onClick={() => window.location.href = '/ml-predictions'}
+          style={{
+            padding: "6px 16px",
+            borderRadius: 6,
+            backgroundColor: TOKEN.purple,
+            border: "none",
+            color: "#fff",
+            fontSize: 10,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6
+          }}
+        >
+          <Brain size={12} /> View ML Predictions
+        </button>
       </div>
-    </div>
+      </div>
   );
 }
 

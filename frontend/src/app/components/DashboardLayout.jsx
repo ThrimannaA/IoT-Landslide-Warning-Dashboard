@@ -193,12 +193,14 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Chatbot } from "./Chatbot"; 
 
 const navItems = [
   { path: "/", label: "Overview", icon: "◈" },
   { path: "/sensors", label: "Sensor Detail", icon: "◉" },
   { path: "/alerts", label: "Alert Log", icon: "⚠" },
   { path: "/reports", label: "Reports", icon: "▦" },
+  { path: "/ml-predictions", label: "ML Predictions", icon: "🧠" }, 
 ];
 
 export function DashboardLayout() {
@@ -418,8 +420,26 @@ export function DashboardLayout() {
           padding: '20px'
         }}>
           <Outlet />
+
+          <div style={{ 
+            fontSize: 9, 
+            color: 'var(--muted)', 
+            textAlign: "center", 
+            padding: "12px 16px",
+            borderTop: "1px solid var(--border)",
+            marginTop: 24
+          }}>
+            <div>
+              © {new Date().getFullYear()} SiteSense - Landslide Early Warning System
+            </div>
+            <div style={{ marginTop: 4, fontSize: 8, opacity: 0.7 }}>
+              Version 2.0
+            </div>
+          </div>
+
         </main>
       </div>
+      <Chatbot />
     </div>
   );
 }

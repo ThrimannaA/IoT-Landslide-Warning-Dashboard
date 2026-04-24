@@ -1,6 +1,8 @@
 // import { useNavigate } from "react-router-dom";
 // import { SensorCard } from "../components/SensorCard";
 // import { AlertItem } from "../components/AlertItem";
+// import { getLatestReading, calculateRiskScore } from "../../services/firebaseService";
+// import { useEffect, useState } from "react";
 // import {
 //   LineChart,
 //   Line,
@@ -10,17 +12,79 @@
 //   CartesianGrid,
 //   ReferenceLine,
 // } from "recharts";
-
-// const trendData = Array.from({ length: 30 }, (_, i) => ({
-//   time: i,
-//   soil: 58 + i * 0.97,
-//   tilt: 3 + i * 0.18,
-//   vibration: 8 + (i % 5) * 1.6,
-//   crack: 3.1 + (i % 3) * 0.05,
-// }));
+// import { useBrushing } from "../context/BrushingContext";
 
 // export function LiveOverview() {
 //   const navigate = useNavigate();
+//   const [sensorData, setSensorData] = useState({
+//     soil_moisture: 0,
+//     crack_width: 0,
+//     tilt: 0,
+//     vibration: 0,
+//     riskScore: 0
+//   });
+//   const [trendData, setTrendData] = useState([]);
+
+//   useEffect(() => {
+//     // Listen for real-time updates
+//     getLatestReading((latest) => {
+//       if (latest) {
+//         setSensorData({
+//           soil_moisture: latest.soil_20cm || 0,
+//           crack_width: latest.crack_width || 0,
+//           tilt: Math.abs(latest.rotation_x) || 0,
+//           vibration: Math.abs(latest.acceleration_x) || 0,
+//           riskScore: calculateRiskScore(latest)
+//         });
+//       }
+//     });
+
+//     // Load trend data for chart
+//     const loadTrendData = async () => {
+//       const { getAllReadings } = await import("../../services/firebaseService");
+//       getAllReadings((readings) => {
+//         if (readings && readings.length > 0) {
+//           // Get last 30 readings for trend
+//           const last30 = readings.slice(-30);
+//           const trend = last30.map((reading, index) => ({
+//             time: index,
+//             soil: reading.soil_20cm || 0,
+//             tilt: Math.abs(reading.rotation_x) || 0,
+//             vibration: Math.abs(reading.acceleration_x) || 0,
+//             crack: reading.crack_width || 0
+//           }));
+//           setTrendData(trend);
+//         }
+//       });
+//     };
+    
+//     loadTrendData();
+//   }, []);
+
+//   // Determine status based on values
+//   const getSoilStatus = () => {
+//     if (sensorData.soil_moisture > 80) return "critical";
+//     if (sensorData.soil_moisture > 60) return "warning";
+//     return "safe";
+//   };
+  
+//   const getCrackStatus = () => {
+//     if (sensorData.crack_width > 5) return "critical";
+//     if (sensorData.crack_width > 3.5) return "warning";
+//     return "safe";
+//   };
+  
+//   const getTiltStatus = () => {
+//     if (sensorData.tilt > 8) return "critical";
+//     if (sensorData.tilt > 5) return "warning";
+//     return "safe";
+//   };
+  
+//   const getVibrationStatus = () => {
+//     if (sensorData.vibration > 0.4) return "critical";
+//     if (sensorData.vibration > 0.2) return "warning";
+//     return "safe";
+//   };
 
 //   return (
 //     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -32,30 +96,30 @@
 //       }}>
 //         <SensorCard
 //           label="SOIL MOISTURE"
-//           value="87"
+//           value={sensorData.soil_moisture}
 //           unit="% saturation"
-//           status="critical"
+//           status={getSoilStatus()}
 //           onClick={() => navigate("/sensors?tab=soil")}
 //         />
 //         <SensorCard
 //           label="VIBRATION"
-//           value="14.2"
-//           unit="pulse events/min"
-//           status="warning"
+//           value={sensorData.vibration.toFixed(2)}
+//           unit="g-force"
+//           status={getVibrationStatus()}
 //           onClick={() => navigate("/sensors?tab=vibration")}
 //         />
 //         <SensorCard
 //           label="TILT / MPU6050"
-//           value="8.4"
+//           value={sensorData.tilt.toFixed(1)}
 //           unit="° deviation (X axis)"
-//           status="warning"
+//           status={getTiltStatus()}
 //           onClick={() => navigate("/sensors?tab=tilt")}
 //         />
 //         <SensorCard
 //           label="CRACK DISPLACEMENT"
-//           value="3.1"
+//           value={sensorData.crack_width.toFixed(1)}
 //           unit="mm gap width (ToF)"
-//           status="safe"
+//           status={getCrackStatus()}
 //           onClick={() => navigate("/sensors?tab=crack")}
 //         />
 //       </div>
@@ -87,7 +151,7 @@
 //               fontFamily: "Barlow, sans-serif",
 //             }}
 //           >
-//             SENSOR TREND — LAST 30 MINUTES
+//             SENSOR TREND — LAST 30 READINGS
 //           </div>
 
 //           <div
@@ -122,7 +186,6 @@
 //                 dataKey="time"
 //                 stroke="var(--muted)"
 //                 style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }}
-//                 tickFormatter={(v) => `${v}m`}
 //               />
 //               <YAxis
 //                 stroke="var(--muted)"
@@ -157,10 +220,10 @@
 //                   dy: -6,
 //                 }}
 //               />
-//               <Line type="monotone" dataKey="soil"      stroke="#ef4444" strokeWidth={2}   dot={false} />
-//               <Line type="monotone" dataKey="tilt"      stroke="#f59e0b" strokeWidth={2}   dot={false} />
+//               <Line type="monotone" dataKey="soil" stroke="#ef4444" strokeWidth={2} dot={false} />
+//               <Line type="monotone" dataKey="tilt" stroke="#f59e0b" strokeWidth={2} dot={false} />
 //               <Line type="monotone" dataKey="vibration" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
-//               <Line type="monotone" dataKey="crack"     stroke="#22c55e" strokeWidth={2}   dot={false} />
+//               <Line type="monotone" dataKey="crack" stroke="#22c55e" strokeWidth={2} dot={false} />
 //             </LineChart>
 //           </ResponsiveContainer>
 //         </div>
@@ -188,11 +251,11 @@
 //           </div>
 
 //           <div style={{ textAlign: "center", marginBottom: "12px" }}>
-//             <div style={{ fontSize: "38px", fontFamily: "Share Tech Mono, monospace", color: "var(--red)", lineHeight: 1 }}>
-//               78
+//             <div style={{ fontSize: "38px", fontFamily: "Share Tech Mono, monospace", color: sensorData.riskScore > 70 ? "var(--red)" : sensorData.riskScore > 50 ? "var(--amber)" : "var(--green)", lineHeight: 1 }}>
+//               {sensorData.riskScore}
 //             </div>
 //             <div style={{ fontSize: "10px", color: "var(--muted)", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}>
-//               / 100 — HIGH RISK
+//               / 100 — {sensorData.riskScore > 70 ? "HIGH RISK" : sensorData.riskScore > 50 ? "MEDIUM RISK" : "LOW RISK"}
 //             </div>
 //           </div>
 
@@ -213,7 +276,7 @@
 //                 height: "8px",
 //                 borderRadius: "50%",
 //                 backgroundColor: "white",
-//                 left: "78%",
+//                 left: `${sensorData.riskScore}%`,
 //                 marginLeft: "-4px"
 //               }}
 //             />
@@ -236,10 +299,10 @@
 
 //           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
 //             {[
-//               { label: "Soil",  value: "38%", color: "var(--red)"   },
-//               { label: "Vib",   value: "22%", color: "var(--amber)" },
-//               { label: "Tilt",  value: "18%", color: "var(--amber)" },
-//               { label: "Crack", value: "0%",  color: "var(--green)" },
+//               { label: "Soil", value: `${sensorData.soil_moisture}%`, color: getSoilStatus() === "critical" ? "var(--red)" : getSoilStatus() === "warning" ? "var(--amber)" : "var(--green)" },
+//               { label: "Vib", value: `${sensorData.vibration.toFixed(2)}g`, color: getVibrationStatus() === "critical" ? "var(--red)" : getVibrationStatus() === "warning" ? "var(--amber)" : "var(--green)" },
+//               { label: "Tilt", value: `${sensorData.tilt.toFixed(1)}°`, color: getTiltStatus() === "critical" ? "var(--red)" : getTiltStatus() === "warning" ? "var(--amber)" : "var(--green)" },
+//               { label: "Crack", value: `${sensorData.crack_width.toFixed(1)}mm`, color: getCrackStatus() === "critical" ? "var(--red)" : getCrackStatus() === "warning" ? "var(--amber)" : "var(--green)" },
 //             ].map((stat) => (
 //               <div
 //                 key={stat.label}
@@ -270,7 +333,7 @@
 //         gridTemplateColumns: 'repeat(2, 1fr)', 
 //         gap: '12px'
 //       }}>
-//         {/* Active Alerts */}
+//         {/* Active Alerts - Generated dynamically */}
 //         <div
 //           style={{
 //             padding: "14px",
@@ -291,29 +354,48 @@
 //           >
 //             ACTIVE ALERTS
 //           </div>
-//           <AlertItem
-//             severity="critical"
-//             message="Soil moisture exceeded critical threshold (87% > 80%)"
-//             timestamp="14:21:03"
-//             location="Sensor S-01 Zone B"
-//           />
-//           <div style={{ height: "8px" }}></div>
-//           <AlertItem
-//             severity="warning"
-//             message="Tilt angle approaching warning limit on west wall"
-//             timestamp="14:19:47"
-//             location="MPU6050 Node 2"
-//           />
-//           <div style={{ height: "8px" }}></div>
-//           <AlertItem
-//             severity="warning"
-//             message="Vibration spike detected — possible excavation impact"
-//             timestamp="14:17:22"
-//             location="SW-420 Node A"
-//           />
+          
+//           {sensorData.soil_moisture > 80 && (
+//             <>
+//               <AlertItem
+//                 severity="critical"
+//                 message={`Soil moisture exceeded critical threshold (${sensorData.soil_moisture}% > 80%)`}
+//                 timestamp={new Date().toLocaleTimeString()}
+//                 location="Sensor S-01 Zone B"
+//               />
+//               <div style={{ height: "8px" }}></div>
+//             </>
+//           )}
+          
+//           {sensorData.tilt > 7 && (
+//             <>
+//               <AlertItem
+//                 severity="warning"
+//                 message={`Tilt angle approaching warning limit (${sensorData.tilt.toFixed(1)}° of 10° limit)`}
+//                 timestamp={new Date().toLocaleTimeString()}
+//                 location="MPU6050 Node 2"
+//               />
+//               <div style={{ height: "8px" }}></div>
+//             </>
+//           )}
+          
+//           {sensorData.vibration > 0.3 && (
+//             <AlertItem
+//               severity="warning"
+//               message={`Vibration spike detected — possible excavation impact (${sensorData.vibration.toFixed(2)}g)`}
+//               timestamp={new Date().toLocaleTimeString()}
+//               location="SW-420 Node A"
+//             />
+//           )}
+          
+//           {sensorData.soil_moisture <= 80 && sensorData.tilt <= 7 && sensorData.vibration <= 0.3 && (
+//             <div style={{ textAlign: "center", padding: "20px", color: "var(--green)" }}>
+//               ✓ No active alerts. All systems normal.
+//             </div>
+//           )}
 //         </div>
 
-//         {/* Site Map */}
+//         {/* Site Map - same as before */}
 //         <div
 //           style={{
 //             padding: "14px",
@@ -360,7 +442,7 @@
 //                   left: "8px",
 //                   width: "240px",
 //                   height: "64px",
-//                   border: "1px dashed var(--blue)",
+//                   border: `1px dashed ${getCrackStatus() === "critical" ? "var(--red)" : getCrackStatus() === "warning" ? "var(--amber)" : "var(--green)"}`,
 //                   borderRadius: "4px",
 //                   cursor: "pointer",
 //                   transition: "background 0.2s"
@@ -373,9 +455,9 @@
 //                   Block A
 //                 </div>
 //                 <div style={{ fontSize: "8px", color: "var(--muted)", paddingLeft: "4px", fontFamily: "Share Tech Mono, monospace" }}>
-//                   Crack · SAFE ↗
+//                   Crack · {getCrackStatus().toUpperCase()} {getCrackStatus() === "critical" ? "🔴" : getCrackStatus() === "warning" ? "🟠" : "🟢"}
 //                 </div>
-//                 <div style={{ position: "absolute", bottom: "8px", right: "8px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: "var(--green)", border: "2px solid var(--bg3)" }} />
+//                 <div style={{ position: "absolute", bottom: "8px", right: "8px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: getCrackStatus() === "critical" ? "var(--red)" : getCrackStatus() === "warning" ? "var(--amber)" : "var(--green)", border: "2px solid var(--bg3)" }} />
 //               </div>
 
 //               {/* Block B */}
@@ -386,7 +468,7 @@
 //                   right: "8px",
 //                   width: "160px",
 //                   height: "64px",
-//                   border: "1px dashed var(--amber)",
+//                   border: `1px dashed ${getTiltStatus() === "critical" ? "var(--red)" : getTiltStatus() === "warning" ? "var(--amber)" : "var(--green)"}`,
 //                   borderRadius: "4px",
 //                   cursor: "pointer",
 //                   transition: "background 0.2s"
@@ -399,9 +481,9 @@
 //                   Block B
 //                 </div>
 //                 <div style={{ fontSize: "8px", color: "var(--muted)", paddingLeft: "4px", fontFamily: "Share Tech Mono, monospace" }}>
-//                   Tilt · WARNING ↑
+//                   Tilt · {getTiltStatus().toUpperCase()} {getTiltStatus() === "critical" ? "🔴" : getTiltStatus() === "warning" ? "🟠" : "🟢"}
 //                 </div>
-//                 <div style={{ position: "absolute", bottom: "8px", left: "8px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: "var(--amber)", border: "2px solid var(--bg3)" }} />
+//                 <div style={{ position: "absolute", bottom: "8px", left: "8px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: getTiltStatus() === "critical" ? "var(--red)" : getTiltStatus() === "warning" ? "var(--amber)" : "var(--green)", border: "2px solid var(--bg3)" }} />
 //               </div>
 
 //               {/* Zone C */}
@@ -412,7 +494,7 @@
 //                   left: "8px",
 //                   right: "8px",
 //                   height: "80px",
-//                   border: "2px dashed var(--red)",
+//                   border: `2px dashed ${getSoilStatus() === "critical" ? "var(--red)" : getSoilStatus() === "warning" ? "var(--amber)" : "var(--green)"}`,
 //                   borderRadius: "4px",
 //                   cursor: "pointer",
 //                   transition: "background 0.2s"
@@ -422,13 +504,13 @@
 //                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
 //               >
 //                 <div style={{ fontSize: "9px", color: "var(--red)", fontWeight: 600, padding: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-//                   <span>Zone C — HIGH RISK</span>
+//                   <span>Zone C — {getSoilStatus() === "critical" ? "HIGH RISK" : getSoilStatus() === "warning" ? "MEDIUM RISK" : "LOW RISK"}</span>
 //                   <span style={{ fontSize: "8px", fontFamily: "Share Tech Mono, monospace", fontWeight: 400, color: "var(--muted)", paddingRight: "4px" }}>
 //                     tap to inspect ↗
 //                   </span>
 //                 </div>
-//                 <div style={{ position: "absolute", top: "40px", left: "16px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: "var(--red)", border: "2px solid var(--bg3)" }} />
-//                 <div style={{ position: "absolute", top: "40px", right: "16px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: "var(--amber)", border: "2px solid var(--bg3)" }} />
+//                 <div style={{ position: "absolute", top: "40px", left: "16px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: getSoilStatus() === "critical" ? "var(--red)" : getSoilStatus() === "warning" ? "var(--amber)" : "var(--green)", border: "2px solid var(--bg3)" }} />
+//                 <div style={{ position: "absolute", top: "40px", right: "16px", width: "12px", height: "12px", borderRadius: "50%", backgroundColor: getVibrationStatus() === "critical" ? "var(--red)" : getVibrationStatus() === "warning" ? "var(--amber)" : "var(--green)", border: "2px solid var(--bg3)" }} />
 //               </div>
 //             </div>
 //           </div>
@@ -470,9 +552,35 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from "recharts";
+import { useBrushing } from "../context/BrushingContext";
+
+// ─── Narrative Annotation Component ─────────────────────────────────────────
+function NarrativeAnnotation({ title, content, color, icon }) {
+  return (
+    <div style={{
+      padding: '12px 16px',
+      borderRadius: '8px',
+      backgroundColor: `${color}10`,
+      borderLeft: `3px solid ${color}`,
+      marginBottom: '12px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        <span>{icon}</span>
+        <span style={{ fontSize: '11px', fontWeight: 600, color }}>{title}</span>
+      </div>
+      <div style={{ fontSize: '11px', color: 'var(--text)', lineHeight: 1.5 }}>
+        {content}
+      </div>
+    </div>
+  );
+}
 
 export function LiveOverview() {
   const navigate = useNavigate();
+  
+  // ─── Brushing & Linking from Context ──────────────────────────────────────
+  const { linkedTimestamp, brushPoint, clearBrush } = useBrushing();
+  
   const [sensorData, setSensorData] = useState({
     soil_moisture: 0,
     crack_width: 0,
@@ -505,6 +613,7 @@ export function LiveOverview() {
           const last30 = readings.slice(-30);
           const trend = last30.map((reading, index) => ({
             time: index,
+            timestamp: reading.timestamp,  // Keep timestamp for brushing
             soil: reading.soil_20cm || 0,
             tilt: Math.abs(reading.rotation_x) || 0,
             vibration: Math.abs(reading.acceleration_x) || 0,
@@ -517,6 +626,21 @@ export function LiveOverview() {
     
     loadTrendData();
   }, []);
+
+  // ─── Chart Click Handler for Brushing ─────────────────────────────────────
+  const handleChartClick = (data) => {
+    if (data?.activePayload?.[0]?.payload) {
+      const payload = data.activePayload[0].payload;
+      brushPoint(payload.time, {
+        time: payload.time,
+        timestamp: payload.timestamp,
+        soil: payload.soil,
+        tilt: payload.tilt,
+        vibration: payload.vibration,
+        crack: payload.crack
+      });
+    }
+  };
 
   // Determine status based on values
   const getSoilStatus = () => {
@@ -543,8 +667,75 @@ export function LiveOverview() {
     return "safe";
   };
 
+  // ─── Generate Narrative Content ──────────────────────────────────────────
+  const getNarrativeContent = () => {
+    const soil = sensorData.soil_moisture;
+    const tilt = sensorData.tilt;
+    const crack = sensorData.crack_width;
+    const vib = sensorData.vibration;
+    
+    if (soil > 80 || tilt > 8 || crack > 5) {
+      return `⚠️ CRITICAL STATUS: Soil moisture at ${soil}% ${soil > 80 ? '(exceeds 80% threshold)' : ''}, tilt at ${tilt.toFixed(1)}° ${tilt > 8 ? '(exceeds 8° limit)' : ''}, crack width at ${crack.toFixed(1)}mm ${crack > 5 ? '(exceeds 5mm limit)' : ''}. IMMEDIATE EVACUATION of Zone C required. Notify site supervisor and safety officer now.`;
+    } else if (soil > 60 || tilt > 5 || crack > 3.5 || vib > 0.2) {
+      return `⚠️ WARNING STATUS: ${soil > 60 ? `Soil moisture at ${soil}% (above 60% warning threshold). ` : ''}${tilt > 5 ? `Tilt at ${tilt.toFixed(1)}° (approaching 8° limit). ` : ''}${crack > 3.5 ? `Crack width at ${crack.toFixed(1)}mm. ` : ''}${vib > 0.2 ? `Elevated vibration at ${vib.toFixed(2)}g. ` : ''}Schedule inspection within 24 hours and increase monitoring frequency.`;
+    } else {
+      return `✅ SAFE STATUS: All parameters within normal ranges. Soil moisture: ${soil}%, Tilt: ${tilt.toFixed(1)}°, Crack: ${crack.toFixed(1)}mm, Vibration: ${vib.toFixed(2)}g. Continue routine monitoring every 30 minutes.`;
+    }
+  };
+
+  const getNarrativeColor = () => {
+    if (sensorData.soil_moisture > 80 || sensorData.tilt > 8 || sensorData.crack_width > 5) return "var(--red)";
+    if (sensorData.soil_moisture > 60 || sensorData.tilt > 5 || sensorData.crack_width > 3.5 || sensorData.vibration > 0.2) return "var(--amber)";
+    return "var(--green)";
+  };
+
+  const getNarrativeIcon = () => {
+    if (sensorData.soil_moisture > 80 || sensorData.tilt > 8 || sensorData.crack_width > 5) return "🚨";
+    if (sensorData.soil_moisture > 60 || sensorData.tilt > 5 || sensorData.crack_width > 3.5 || sensorData.vibration > 0.2) return "⚠️";
+    return "✅";
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      
+      {/* ─── NARRATIVE ANNOTATION (Visual Storytelling) ─────────────────────── */}
+      <NarrativeAnnotation
+        title="VISUAL NARRATIVE — Current Situation"
+        content={getNarrativeContent()}
+        color={getNarrativeColor()}
+        icon={getNarrativeIcon()}
+      />
+
+      {/* ─── BRUSHING STATUS BAR (shows when a point is linked) ─────────────── */}
+      {linkedTimestamp !== null && (
+        <div style={{
+          padding: '8px 14px',
+          borderRadius: '6px',
+          backgroundColor: '#8b5cf620',
+          border: '1px solid #8b5cf6',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '11px'
+        }}>
+          <span style={{ color: '#8b5cf6' }}>
+            🔗 Linked to reading #{linkedTimestamp}
+          </span>
+          <button
+            onClick={clearBrush}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#8b5cf6',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            Clear ✕
+          </button>
+        </div>
+      )}
+
       {/* Sensor Cards Row - 4 columns */}
       <div style={{ 
         display: 'grid', 
@@ -606,9 +797,14 @@ export function LiveOverview() {
               letterSpacing: "0.1em",
               marginBottom: "8px",
               fontFamily: "Barlow, sans-serif",
+              display: "flex",
+              justifyContent: "space-between"
             }}
           >
-            SENSOR TREND — LAST 30 READINGS
+            <span>SENSOR TREND — LAST 30 READINGS</span>
+            <span style={{ fontSize: "9px", fontWeight: 400 }}>
+              💡 Click any point to link across dashboard
+            </span>
           </div>
 
           <div
@@ -634,7 +830,10 @@ export function LiveOverview() {
           </div>
 
           <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={trendData}>
+            <LineChart 
+              data={trendData} 
+              onClick={handleChartClick}
+            >
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="rgba(42, 51, 71, 0.5)"
@@ -649,6 +848,24 @@ export function LiveOverview() {
                 style={{ fontSize: "9px", fontFamily: "Share Tech Mono, monospace" }}
                 domain={[0, 100]}
               />
+              
+              {/* Brushing & Linking - Reference Line */}
+              {linkedTimestamp !== null && (
+                <ReferenceLine 
+                  x={linkedTimestamp} 
+                  stroke="#8b5cf6" 
+                  strokeWidth={2} 
+                  strokeDasharray="6 4"
+                  label={{
+                    value: "🔗 Linked",
+                    position: "top",
+                    fill: "#8b5cf6",
+                    fontSize: 9
+                  }}
+                />
+              )}
+              
+              {/* Threshold Reference Lines */}
               <ReferenceLine
                 y={80}
                 stroke="#ef4444"
@@ -677,12 +894,18 @@ export function LiveOverview() {
                   dy: -6,
                 }}
               />
-              <Line type="monotone" dataKey="soil" stroke="#ef4444" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="tilt" stroke="#f59e0b" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="vibration" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
-              <Line type="monotone" dataKey="crack" stroke="#22c55e" strokeWidth={2} dot={false} />
+              
+              <Line type="monotone" dataKey="soil" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 6, fill: "#ef4444", stroke: "#fff", strokeWidth: 2 }} />
+              <Line type="monotone" dataKey="tilt" stroke="#f59e0b" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: "#f59e0b", stroke: "#fff", strokeWidth: 2 }} />
+              <Line type="monotone" dataKey="vibration" stroke="#3b82f6" strokeWidth={1.5} dot={false} activeDot={{ r: 5, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }} />
+              <Line type="monotone" dataKey="crack" stroke="#22c55e" strokeWidth={2} dot={false} activeDot={{ r: 5, fill: "#22c55e", stroke: "#fff", strokeWidth: 2 }} />
             </LineChart>
           </ResponsiveContainer>
+          
+          {/* Hint text for brushing */}
+          <div style={{ fontSize: "8px", color: "var(--muted)", textAlign: "center", marginTop: "8px" }}>
+            🖱️ Hover over lines → click any point to highlight across all dashboard panels
+          </div>
         </div>
 
         {/* Composite Risk Score */}
@@ -852,7 +1075,7 @@ export function LiveOverview() {
           )}
         </div>
 
-        {/* Site Map - same as before */}
+        {/* Site Map */}
         <div
           style={{
             padding: "14px",
