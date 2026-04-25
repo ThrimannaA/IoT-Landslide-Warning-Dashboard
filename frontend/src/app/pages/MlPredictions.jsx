@@ -42,7 +42,7 @@ export function MlPredictions() {
     setLoading(true);
     try {
       // Check ML service health
-      const healthRes = await fetch('http://localhost:3001/api/ml/health');
+      const healthRes = await fetch('http://localhost:5000/api/ml/health');
       const health = await healthRes.json();
       setMlStatus(health.status === 'ok' ? 'connected' : 'disconnected');
       
@@ -52,22 +52,22 @@ export function MlPredictions() {
       }
       
       // Fetch current risk
-      const currentRes = await fetch('http://localhost:3001/api/ml/current-risk');
+      const currentRes = await fetch('http://localhost:5000/api/ml/current-risk');
       const currentData = await currentRes.json();
       setCurrentRisk(currentData);
       
       // Fetch forecast
-      const forecastRes = await fetch(`http://localhost:3001/api/ml/forecast?hours=${forecastHours}`);
+      const forecastRes = await fetch(`http://localhost:5000/api/ml/forecast?hours=${forecastHours}`);
       const forecastData = await forecastRes.json();
       setForecast(forecastData);
       
       // Fetch historical risk
-      const historicalRes = await fetch('http://localhost:3001/api/ml/historical-risk?limit=30');
+      const historicalRes = await fetch('http://localhost:5000/api/ml/historical-risk?limit=30');
       const historicalData = await historicalRes.json();
       setHistoricalRisk(historicalData.historical_risk || []);
       
       // Fetch feature importance
-      const featureRes = await fetch('http://localhost:3001/api/ml/feature-importance');
+      const featureRes = await fetch('http://localhost:5000/api/ml/feature-importance');
       const featureData = await featureRes.json();
       setFeatureImportance(featureData.feature_importance || []);
       
