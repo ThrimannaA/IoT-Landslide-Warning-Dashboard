@@ -542,6 +542,7 @@
 import { useNavigate } from "react-router-dom";
 import { SensorCard } from "../components/SensorCard";
 import { AlertItem } from "../components/AlertItem";
+import { SafetyRecommendations } from "../components/SafetyRecommendations";
 import { getLatestReading, calculateRiskScore, getAllReadings } from "../../services/firebaseService";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
@@ -571,17 +572,17 @@ import { Activity, TrendingUp, AlertTriangle, Info, Download, Filter, Brain } fr
 function NarrativeAnnotation({ title, content, color, icon }) {
   return (
     <div style={{
-      padding: '12px 16px',
-      borderRadius: '8px',
+      padding: '14px 18px',
+      borderRadius: '10px',
       backgroundColor: `${color}10`,
-      borderLeft: `3px solid ${color}`,
+      borderLeft: `4px solid ${color}`,
       marginBottom: '12px'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-        <span>{icon}</span>
-        <span style={{ fontSize: '11px', fontWeight: 600, color }}>{title}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <span style={{ fontSize: '16px' }}>{icon}</span>
+        <span style={{ fontSize: '13px', fontWeight: 700, color }}>{title}</span>
       </div>
-      <div style={{ fontSize: '11px', color: 'var(--text)', lineHeight: 1.5 }}>
+      <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.6 }}>
         {content}
       </div>
     </div>
@@ -607,40 +608,40 @@ function ComparativeView({ currentData, historicalData }) {
   }, [currentData, historicalData]);
   
   return (
-    <div style={{ marginTop: "16px", padding: "14px", backgroundColor: "var(--bg3)", borderRadius: "8px" }}>
+    <div style={{ marginTop: "16px", padding: "16px", backgroundColor: "var(--bg3)", borderRadius: "10px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
         <Activity size={14} style={{ color: "var(--blue)" }} />
-        <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
           COMPARATIVE ANALYSIS — Current vs Historical Average
         </span>
       </div>
       
       {comparisonStats && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-          <div style={{ textAlign: "center", padding: "8px", backgroundColor: "var(--bg2)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>Soil Moisture</div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: comparisonStats.soil.change > 5 ? "var(--red)" : comparisonStats.soil.change < -5 ? "var(--green)" : "var(--text)" }}>
+          <div style={{ textAlign: "center", padding: "10px", backgroundColor: "var(--bg2)", borderRadius: "8px" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Soil Moisture</div>
+            <div style={{ fontSize: "22px", fontWeight: 600, color: comparisonStats.soil.change > 5 ? "var(--red)" : comparisonStats.soil.change < -5 ? "var(--green)" : "var(--text)" }}>
               {comparisonStats.soil.current}%
             </div>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "2px" }}>
               {comparisonStats.soil.change > 0 ? `↑ +${comparisonStats.soil.change.toFixed(1)}%` : `↓ ${comparisonStats.soil.change.toFixed(1)}%`} vs avg
             </div>
           </div>
-          <div style={{ textAlign: "center", padding: "8px", backgroundColor: "var(--bg2)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>Crack Width</div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: comparisonStats.crack.change > 0.5 ? "var(--red)" : "var(--text)" }}>
+          <div style={{ textAlign: "center", padding: "10px", backgroundColor: "var(--bg2)", borderRadius: "8px" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Crack Width</div>
+            <div style={{ fontSize: "22px", fontWeight: 600, color: comparisonStats.crack.change > 0.5 ? "var(--red)" : "var(--text)" }}>
               {comparisonStats.crack.current}mm
             </div>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "2px" }}>
               {comparisonStats.crack.change > 0 ? `↑ +${comparisonStats.crack.change}mm` : `↓ ${comparisonStats.crack.change}mm`} vs avg
             </div>
           </div>
-          <div style={{ textAlign: "center", padding: "8px", backgroundColor: "var(--bg2)", borderRadius: "6px" }}>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>Tilt Angle</div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: comparisonStats.tilt.change > 1 ? "var(--amber)" : "var(--text)" }}>
+          <div style={{ textAlign: "center", padding: "10px", backgroundColor: "var(--bg2)", borderRadius: "8px" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Tilt Angle</div>
+            <div style={{ fontSize: "22px", fontWeight: 600, color: comparisonStats.tilt.change > 1 ? "var(--amber)" : "var(--text)" }}>
               {comparisonStats.tilt.current}°
             </div>
-            <div style={{ fontSize: "9px", color: "var(--muted)" }}>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "2px" }}>
               {comparisonStats.tilt.change > 0 ? `↑ +${comparisonStats.tilt.change}°` : `↓ ${comparisonStats.tilt.change}°`} vs avg
             </div>
           </div>
@@ -715,17 +716,17 @@ function AnomalyDetector({ readings, currentData }) {
   if (anomalies.length === 0) return null;
   
   return (
-    <div style={{ marginTop: "12px", padding: "12px", backgroundColor: "rgba(239,68,68,0.08)", borderRadius: "8px", border: "1px solid rgba(239,68,68,0.3)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+    <div style={{ marginTop: "12px", padding: "14px", backgroundColor: "rgba(239,68,68,0.08)", borderRadius: "10px", border: "1px solid rgba(239,68,68,0.3)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
         <AlertTriangle size={14} style={{ color: "var(--amber)" }} />
-        <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--amber)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--amber)", letterSpacing: "0.1em" }}>
           ANOMALY DETECTION — Statistical Outliers Identified
         </span>
       </div>
       {anomalies.map((anomaly, idx) => (
-        <div key={idx} style={{ fontSize: "10px", color: "var(--text)", marginBottom: "6px", paddingLeft: "12px" }}>
-          • <span style={{ color: anomaly.severity === "critical" ? "var(--red)" : "var(--amber)" }}>{anomaly.sensor}</span>: {anomaly.message}
-          <span style={{ fontSize: "8px", color: "var(--muted)", marginLeft: "8px" }}>— View on {anomaly.chart}</span>
+        <div key={idx} style={{ fontSize: "12px", color: "var(--text)", marginBottom: "8px", paddingLeft: "14px" }}>
+          • <span style={{ color: anomaly.severity === "critical" ? "var(--red)" : "var(--amber)", fontWeight: 600 }}>{anomaly.sensor}</span>: {anomaly.message}
+          <span style={{ fontSize: "10px", color: "var(--muted)", marginLeft: "8px" }}>— View on {anomaly.chart}</span>
         </div>
       ))}
     </div>
@@ -768,28 +769,28 @@ function CorrelationPanel({ readings }) {
   if (!correlations) return null;
   
   return (
-    <div style={{ marginTop: "16px", padding: "14px", backgroundColor: "var(--bg3)", borderRadius: "8px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+    <div style={{ marginTop: "16px", padding: "16px", backgroundColor: "var(--bg3)", borderRadius: "10px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
         <TrendingUp size={14} style={{ color: "var(--blue)" }} />
-        <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
           SENSOR CORRELATIONS — Pearson Coefficient
         </span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
         {correlations.map((corr, idx) => (
-          <div key={idx} style={{ backgroundColor: "var(--bg2)", padding: "8px 12px", borderRadius: "6px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-              <span style={{ fontSize: "10px", color: "var(--text)" }}>{corr.pair}</span>
-              <span style={{ fontSize: "10px", fontWeight: 600, color: corr.color }}>r = {corr.value}</span>
+          <div key={idx} style={{ backgroundColor: "var(--bg2)", padding: "10px 14px", borderRadius: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+              <span style={{ fontSize: "12px", color: "var(--text)" }}>{corr.pair}</span>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: corr.color }}>r = {corr.value}</span>
             </div>
-            <div style={{ height: "4px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "2px", overflow: "hidden" }}>
-              <div style={{ width: `${Math.abs(corr.value) * 100}%`, height: "100%", backgroundColor: corr.color, borderRadius: "2px" }} />
+            <div style={{ height: "5px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden" }}>
+              <div style={{ width: `${Math.abs(corr.value) * 100}%`, height: "100%", backgroundColor: corr.color, borderRadius: "3px" }} />
             </div>
-            <div style={{ fontSize: "8px", color: "var(--muted)", marginTop: "4px" }}>{corr.description}</div>
+            <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "5px" }}>{corr.description}</div>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: "8px", color: "var(--muted)", marginTop: "8px", textAlign: "center" }}>
+      <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "10px", textAlign: "center" }}>
         💡 |r| &gt; 0.7 = Strong correlation | 0.4-0.7 = Moderate | &lt; 0.4 = Weak
       </div>
     </div>
@@ -806,18 +807,18 @@ function MultiSensorRadar({ currentData }) {
   ];
   
   return (
-    <div style={{ marginTop: "16px", padding: "14px", backgroundColor: "var(--bg3)", borderRadius: "8px" }}>
+    <div style={{ marginTop: "16px", padding: "16px", backgroundColor: "var(--bg3)", borderRadius: "10px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
         <Activity size={14} style={{ color: "var(--purple)" }} />
-        <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.1em" }}>
           MULTI-DIMENSIONAL ANALYSIS — Sensor State Radar
         </span>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <RadarChart data={radarData}>
           <PolarGrid stroke="rgba(255,255,255,0.1)" />
-          <PolarAngleAxis dataKey="metric" tick={{ fill: "var(--muted)", fontSize: 9 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--muted)", fontSize: 8 }} />
+          <PolarAngleAxis dataKey="metric" tick={{ fill: "var(--muted)", fontSize: 11 }} />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--muted)", fontSize: 10 }} />
           <Radar name="Current State" dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.2} />
         </RadarChart>
       </ResponsiveContainer>
@@ -989,7 +990,7 @@ export function LiveOverview() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          fontSize: '11px'
+          fontSize: '12px'
         }}>
           <span style={{ color: '#8b5cf6' }}>
             🔗 Linked to reading #{linkedTimestamp}
@@ -1001,7 +1002,7 @@ export function LiveOverview() {
               border: 'none',
               color: '#8b5cf6',
               cursor: 'pointer',
-              fontSize: '12px'
+              fontSize: '13px'
             }}
           >
             Clear ✕
@@ -1053,16 +1054,16 @@ export function LiveOverview() {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 12px',
-            borderRadius: '4px',
-            fontSize: '10px',
+            padding: '6px 14px',
+            borderRadius: '6px',
+            fontSize: '12px',
             backgroundColor: 'var(--bg3)',
             border: '1px solid var(--border)',
             color: 'var(--text)',
             cursor: 'pointer'
           }}
         >
-          <Download size={12} /> Export CSV
+          <Download size={13} /> Export CSV
         </button>
         <button
           onClick={() => navigate("/ml-predictions")}
@@ -1070,16 +1071,16 @@ export function LiveOverview() {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 12px',
-            borderRadius: '4px',
-            fontSize: '10px',
+            padding: '6px 14px',
+            borderRadius: '6px',
+            fontSize: '12px',
             backgroundColor: 'rgba(139,92,246,0.15)',
             border: '1px solid #8b5cf6',
             color: '#8b5cf6',
             cursor: 'pointer'
           }}
         >
-          <Brain size={12} /> ML Predictions
+          <Brain size={13} /> ML Predictions
         </button>
       </div>
 
@@ -1102,7 +1103,7 @@ export function LiveOverview() {
         >
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: 600,
               color: "var(--muted)",
               letterSpacing: "0.1em",
@@ -1113,7 +1114,7 @@ export function LiveOverview() {
             }}
           >
             <span>SENSOR TREND — LAST 30 READINGS</span>
-            <span style={{ fontSize: "9px", fontWeight: 400 }}>
+            <span style={{ fontSize: "11px", fontWeight: 400 }}>
               💡 Click any point to link across dashboard
             </span>
           </div>
@@ -1123,7 +1124,7 @@ export function LiveOverview() {
               display: "flex",
               gap: "14px",
               marginBottom: "10px",
-              fontSize: "9px",
+              fontSize: "11px",
               fontFamily: "Share Tech Mono, monospace",
               color: "var(--muted)",
               flexWrap: "wrap",
@@ -1213,7 +1214,7 @@ export function LiveOverview() {
             </LineChart>
           </ResponsiveContainer>
           
-          <div style={{ fontSize: "8px", color: "var(--muted)", textAlign: "center", marginTop: "8px" }}>
+          <div style={{ fontSize: "11px", color: "var(--muted)", textAlign: "center", marginTop: "8px" }}>
             🖱️ Hover over lines → click any point to highlight across all dashboard panels
           </div>
         </div>
@@ -1229,22 +1230,22 @@ export function LiveOverview() {
         >
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: 600,
               color: "var(--muted)",
               letterSpacing: "0.1em",
-              marginBottom: "12px",
+              marginBottom: "14px",
               fontFamily: "Barlow, sans-serif",
             }}
           >
             COMPOSITE RISK SCORE
           </div>
 
-          <div style={{ textAlign: "center", marginBottom: "12px" }}>
-            <div style={{ fontSize: "38px", fontFamily: "Share Tech Mono, monospace", color: sensorData.riskScore > 70 ? "var(--red)" : sensorData.riskScore > 50 ? "var(--amber)" : "var(--green)", lineHeight: 1 }}>
+          <div style={{ textAlign: "center", marginBottom: "14px" }}>
+            <div style={{ fontSize: "42px", fontFamily: "Share Tech Mono, monospace", color: sensorData.riskScore > 70 ? "var(--red)" : sensorData.riskScore > 50 ? "var(--amber)" : "var(--green)", lineHeight: 1 }}>
               {sensorData.riskScore}
             </div>
-            <div style={{ fontSize: "10px", color: "var(--muted)", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}>
+            <div style={{ fontSize: "12px", color: "var(--muted)", fontFamily: "Share Tech Mono, monospace", marginTop: "6px" }}>
               / 100 — {sensorData.riskScore > 70 ? "HIGH RISK" : sensorData.riskScore > 50 ? "MEDIUM RISK" : "LOW RISK"}
             </div>
           </div>
@@ -1276,8 +1277,8 @@ export function LiveOverview() {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              marginBottom: "12px",
-              fontSize: "9px",
+              marginBottom: "14px",
+              fontSize: "11px",
               fontFamily: "Share Tech Mono, monospace",
               color: "var(--muted)"
             }}
@@ -1297,16 +1298,16 @@ export function LiveOverview() {
               <div
                 key={stat.label}
                 style={{
-                  padding: "8px",
-                  borderRadius: "4px",
+                  padding: "10px",
+                  borderRadius: "6px",
                   textAlign: "center",
                   backgroundColor: "var(--bg3)"
                 }}
               >
-                <div style={{ fontSize: "9px", color: "var(--muted)", marginBottom: "2px" }}>
+                <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>
                   {stat.label}
                 </div>
-                <div style={{ fontSize: "14px", fontFamily: "Share Tech Mono, monospace", color: stat.color }}>
+                <div style={{ fontSize: "15px", fontFamily: "Share Tech Mono, monospace", color: stat.color, fontWeight: 600 }}>
                   {stat.value}
                 </div>
               </div>
@@ -1348,11 +1349,11 @@ export function LiveOverview() {
         >
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: 600,
               color: "var(--muted)",
               letterSpacing: "0.1em",
-              marginBottom: "12px",
+              marginBottom: "14px",
               fontFamily: "Barlow, sans-serif",
             }}
           >
@@ -1393,7 +1394,7 @@ export function LiveOverview() {
           )}
           
           {sensorData.soil_moisture <= 80 && sensorData.tilt <= 7 && sensorData.vibration <= 0.3 && (
-            <div style={{ textAlign: "center", padding: "20px", color: "var(--green)" }}>
+            <div style={{ textAlign: "center", padding: "24px", color: "var(--green)", fontSize: "14px" }}>
               ✓ No active alerts. All systems normal.
             </div>
           )}
@@ -1410,11 +1411,11 @@ export function LiveOverview() {
         >
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: 600,
               color: "var(--muted)",
               letterSpacing: "0.1em",
-              marginBottom: "12px",
+              marginBottom: "14px",
               fontFamily: "Barlow, sans-serif",
             }}
           >
@@ -1524,8 +1525,8 @@ export function LiveOverview() {
             style={{
               display: "flex",
               gap: "12px",
-              marginTop: "8px",
-              fontSize: "9px",
+              marginTop: "10px",
+              fontSize: "11px",
               fontFamily: "Share Tech Mono, monospace",
               color: "var(--muted)"
             }}
@@ -1540,6 +1541,17 @@ export function LiveOverview() {
       </div>
 
       {/* UX Footer - Assignment requirement documentation */}
+
+      {/* ─── SAFETY RECOMMENDATIONS ──────────────────────────────────────────── */}
+      <SafetyRecommendations
+        riskLevel={
+          sensorData.riskScore > 70 || sensorData.soil_moisture > 80 || sensorData.tilt > 8 || sensorData.crack_width > 5
+            ? "critical"
+            : sensorData.riskScore > 50 || sensorData.soil_moisture > 60 || sensorData.tilt > 5 || sensorData.crack_width > 3.5 || sensorData.vibration > 0.2
+            ? "warning"
+            : "safe"
+        }
+      />
     </div>
   );
 }

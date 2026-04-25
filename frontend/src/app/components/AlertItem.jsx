@@ -55,7 +55,7 @@ export function AlertItem({ severity, message, timestamp, location }) {
     >
       <div className="flex items-start gap-2">
         <div style={{
-          fontSize: '16px',
+          fontSize: '18px',
           color: acknowledged ? 'var(--green)' : style.iconColor,
           marginTop: '2px',
           transition: 'color 0.3s ease'
@@ -64,15 +64,15 @@ export function AlertItem({ severity, message, timestamp, location }) {
         </div>
         <div className="flex-1">
           <div style={{
-            fontSize: '12px',
+            fontSize: '13px',
             color: 'var(--text)',
             marginBottom: '4px',
-            lineHeight: 1.4
+            lineHeight: 1.5
           }}>
             {message}
           </div>
           <div style={{
-            fontSize: '10px',
+            fontSize: '11px',
             fontFamily: 'Share Tech Mono, monospace',
             color: 'var(--muted)'
           }}>
@@ -90,11 +90,11 @@ export function AlertItem({ severity, message, timestamp, location }) {
               <button
                 onClick={handleAcknowledge}
                 style={{
-                  fontSize: '9px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   fontFamily: 'Barlow, sans-serif',
                   letterSpacing: '0.08em',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   borderRadius: '4px',
                   border: `1px solid ${style.btnBorder}`,
                   background: 'transparent',
@@ -109,7 +109,7 @@ export function AlertItem({ severity, message, timestamp, location }) {
               </button>
             ) : (
               <div style={{
-                fontSize: '9px',
+                fontSize: '11px',
                 fontFamily: 'Share Tech Mono, monospace',
                 color: 'var(--green)',
                 display: 'flex',

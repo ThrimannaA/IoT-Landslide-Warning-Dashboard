@@ -252,7 +252,7 @@ export function DashboardLayout() {
         <div style={{ padding: '20px 16px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ 
             fontFamily: 'Barlow Condensed, sans-serif',
-            fontSize: '13px',
+            fontSize: '16px',
             fontWeight: 700,
             color: 'var(--amber)',
             letterSpacing: '0.08em'
@@ -260,9 +260,9 @@ export function DashboardLayout() {
             SITESENSE
           </div>
           <div style={{
-            fontSize: '9px',
+            fontSize: '11px',
             color: 'var(--muted)',
-            marginTop: '2px',
+            marginTop: '3px',
             letterSpacing: '0.05em'
           }}>
             EARLY WARNING SYSTEM
@@ -272,9 +272,9 @@ export function DashboardLayout() {
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '16px 8px' }}>
           <div style={{
-            fontSize: '9px',
+            fontSize: '10px',
             color: 'var(--muted)',
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: '0.1em',
             marginBottom: '8px',
             paddingLeft: '10px'
@@ -297,8 +297,8 @@ export function DashboardLayout() {
                   padding: '8px 12px',
                   marginBottom: '4px',
                   borderRadius: '8px',
-                  height: '36px',
-                  fontSize: '12px',
+                  height: '40px',
+                  fontSize: '13px',
                   fontWeight: 500,
                   backgroundColor: isActive ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
                   color: isActive ? 'var(--amber)' : 'var(--text)',
@@ -316,13 +316,13 @@ export function DashboardLayout() {
 
         {/* Status Block */}
         <div style={{ 
-          padding: '12px 16px',
+          padding: '14px 16px',
           borderTop: '1px solid var(--border)',
-          fontSize: '10px'
+          fontSize: '12px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontFamily: 'Share Tech Mono, monospace' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--green)', animation: 'pulse 2s infinite' }} />
-            <span style={{ color: 'var(--green)' }}>LIVE — 4 SENSORS</span>
+            <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: 'var(--green)', animation: 'pulse 2s infinite' }} />
+            <span style={{ color: 'var(--green)', fontWeight: 600 }}>LIVE — 4 SENSORS</span>
           </div>
           <div style={{ color: 'var(--muted)', marginBottom: '4px' }}>
             Site: Colombo Block-C
@@ -422,7 +422,7 @@ export function DashboardLayout() {
           <Outlet />
 
           <div style={{ 
-            fontSize: 9, 
+            fontSize: 11, 
             color: 'var(--muted)', 
             textAlign: "center", 
             padding: "12px 16px",
@@ -432,7 +432,7 @@ export function DashboardLayout() {
             <div>
               © {new Date().getFullYear()} SiteSense - Landslide Early Warning System
             </div>
-            <div style={{ marginTop: 4, fontSize: 8, opacity: 0.7 }}>
+            <div style={{ marginTop: 4, fontSize: 10, opacity: 0.7 }}>
               Version 2.0
             </div>
           </div>
